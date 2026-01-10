@@ -285,6 +285,33 @@ footer p{
   opacity:.8;
 }
 
+/* ---------- BACK TO TOP BUTTON ---------- */
+#backToTop {
+  position: fixed;
+  bottom: 25px;
+  right: 25px;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  border: none;
+  background: #007bff;
+  color: white;
+  font-size: 22px;
+  cursor: pointer;
+  display: none;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+  transition: transform 0.3s, background 0.3s;
+}
+
+/* Hover effect */
+#backToTop:hover {
+  background: #0056b3;
+  transform: scale(1.1);
+}
+
+
+  
+
 /* RESPONSIVE */
 @media(max-width:768px){
   .hero h1{font-size:2.5rem;}
@@ -304,6 +331,9 @@ footer p{
 <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme">
   <i id="themeIcon" class="fas fa-moon"></i>
 </button>
+
+<!-- TOP ANCHOR -->
+<div id="top"></div>
 
 <!-- HERO -->
 <header class="hero">
@@ -438,6 +468,32 @@ fetch(`https://api.github.com/users/${username}/repos?sort=updated`)
     projectGrid.innerHTML = "<p>Unable to load GitHub projects.</p>";
     console.error(err);
   });
+</script>
+
+
+  <!-- BACK TO TOP BUTTON -->
+<button id="backToTop" title="Back to Top">↑</button>
+
+<script>
+/* ---------- SCROLL TO TOP SCRIPT ---------- */
+const backToTopBtn = document.getElementById("backToTop");
+
+// Show button after scrolling 300px
+window.addEventListener("scroll", () => {
+  if (window.scrollY > 300) {
+    backToTopBtn.style.display = "block";
+  } else {
+    backToTopBtn.style.display = "none";
+  }
+});
+
+// Scroll smoothly to top when clicked
+backToTopBtn.addEventListener("click", () => {
+  window.scrollTo({
+    top: 0,
+    behavior: "smooth"
+  });
+});
 </script>
 
 </body>
