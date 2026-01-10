@@ -441,7 +441,7 @@ fetch(`https://api.github.com/users/${username}/repos?sort=updated`)
   .then(repos => {
     projectGrid.innerHTML = "";
 
-    repos.slice(0, 6).forEach(repo => {
+    repos.slice(0, 300).forEach(repo => {
       projectGrid.innerHTML += `
         <div class="project-card">
           <div class="project-image" style="background-image:url('https://source.unsplash.com/600x400/?technology,code');"></div>
