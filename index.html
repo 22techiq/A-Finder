@@ -516,5 +516,17 @@ document.addEventListener("click", function (e) {
 });
 </script>
 
+<script>
+document.addEventListener("visibilitychange", () => {
+  if (!document.hidden) {
+    document.querySelectorAll(".btn-demo").forEach(btn => {
+      btn.textContent = "View Repo";
+      btn.style.pointerEvents = "auto";
+      btn.style.opacity = "1";
+    });
+  }
+});
+</script>
+
 </body>
 </html>
