@@ -398,6 +398,62 @@ footer p{
 
 
 
+.dismissable-text {
+  display: none;
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 12px 20px;
+  background-color: #f0f0f0;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.15);
+  font-family: Arial, sans-serif;
+}
+
+/* Message layout */
+.dismissable-text .message {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Font Awesome icon */
+.dismissable-text .message i {
+  color: #007bff;
+  font-size: 18px;
+}
+
+/* Close button */
+.dismissable-text .close-btn {
+  position: absolute;
+  top: 6px;
+  right: 10px;
+  cursor: pointer;
+  font-size: 22px;
+  color: #ff4d4d;
+  transition: color 0.3s ease;
+}
+
+.dismissable-text .close-btn:hover {
+  color: #555;
+}
+
+/* Link styling */
+#dismissableText a {
+  color: #007bff;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+#dismissableText a:hover {
+  color: #0056b3;
+  text-decoration: underline;
+}
+
+
+
 
 /* RESPONSIVE */
 @media(max-width:768px){
@@ -411,6 +467,20 @@ footer p{
 }
 </style>
 </head>
+
+
+
+<!-- Dismissable text -->
+<div id="dismissableText" class="dismissable-text">
+  <span class="message">
+    <i class="fas fa-book"></i>
+    <a href="../offer/notice" target="_blank">Leave a message</a>
+  </span>
+  <span class="close-btn">&times;</span>
+</div>
+
+
+
 
 <body>
 
@@ -621,6 +691,20 @@ document.addEventListener("visibilitychange", () => {
       btn.style.opacity = "1";
     });
   }
+});
+</script>
+
+
+<!--Dismisable text-->
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  setTimeout(function () {
+    document.getElementById("dismissableText").style.display = "block";
+  }, 10000); // 1 minute
+});
+
+document.querySelector(".close-btn").addEventListener("click", function () {
+  document.getElementById("dismissableText").style.display = "none";
 });
 </script>
 
