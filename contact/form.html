@@ -152,6 +152,30 @@
       text-align: justify;
     }
   </style>
+
+<!-- DOMPurify -->
+<script src="DOMPurify/purify.min.js"></script>
+
+<!-- Form sanitization -->
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const form = document.getElementById("contactForm");
+
+    form.addEventListener("submit", function () {
+      const fields = form.querySelectorAll("input, textarea");
+
+      fields.forEach(field => {
+        field.value = DOMPurify.sanitize(field.value, {
+          ALLOWED_TAGS: [],
+          ALLOWED_ATTR: []
+        });
+      });
+    });
+  });
+</script>
+<!--End of DOMPurify -->
+
+
 </head>
 <body>
   <div class="contact-container">
