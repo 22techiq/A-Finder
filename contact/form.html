@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  
+  <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.min.js"></script>
   
   <link
   rel="stylesheet"
@@ -314,6 +314,28 @@
     return true;
   }
 </script>
+
+
+<script>
+document.getElementById("contactForm").addEventListener("submit", function (e) {
+  e.preventDefault(); // Stop submission first
+
+  const inputs = this.querySelectorAll("input, textarea");
+
+  inputs.forEach(input => {
+    const cleanValue = DOMPurify.sanitize(input.value, {
+      ALLOWED_TAGS: [],
+      ALLOWED_ATTR: []
+    });
+
+    input.value = cleanValue;
+  });
+
+  // Proceed with safe submission
+  this.submit();
+});
+</script>
+  
 
 </html>
 
