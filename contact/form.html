@@ -341,27 +341,29 @@ document.getElementById("contactForm").addEventListener("submit", function (e) {
 
 
 <script>
-  const phoneInput = document.querySelector("#phone");
-  const hiddenPhoneInput = document.querySelector("#fullPhone");
-  const form = phoneInput.closest("form");
+  (function () {
+    const phoneInput = document.getElementById("phone");
+    const form = document.getElementById("contactForm");
 
-  let countrySelected = false;
+    if (!phoneInput || !form || typeof iti === "undefined") return;
 
-  // Detect when user explicitly selects a country
-  phoneInput.addEventListener("countrychange", () => {
-    const countryData = iti.getSelectedCountryData();
-    countrySelected = !!(countryData && countryData.dialCode);
-  });
+    let countryChosen = false;
 
-  // Block submission if country code not selected
-  form.addEventListener("submit", (event) => {
-    if (!countrySelected) {
-      event.preventDefault();
-      alert("Please select a country code before submitting the form.");
-      phoneInput.focus();
-      return false;
-    }
-  });
+    // Track explicit country selection
+    phoneInput.addEventListener("countrychange", () => {
+      const data = iti.getSelectedCountryData();
+      countryChosen = !!(data && data.dialCode);
+    });
+
+    // Hard stop submission if country code not chosen
+    form.addEventListener("submit", function (e) {
+      if (!countryChosen) {
+        e.preventDefault();
+        alert("Please select a country code before submitting the form.");
+        phoneInput.focus();
+      }
+    });
+  })();
 </script>
 </html>
 
