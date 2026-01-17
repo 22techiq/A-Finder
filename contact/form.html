@@ -338,5 +338,30 @@ document.getElementById("contactForm").addEventListener("submit", function (e) {
 </script>
   
 
+
+
+<script>
+  const phoneInput = document.querySelector("#phone");
+  const hiddenPhoneInput = document.querySelector("#fullPhone");
+  const form = phoneInput.closest("form");
+
+  let countrySelected = false;
+
+  // Detect when user explicitly selects a country
+  phoneInput.addEventListener("countrychange", () => {
+    const countryData = iti.getSelectedCountryData();
+    countrySelected = !!(countryData && countryData.dialCode);
+  });
+
+  // Block submission if country code not selected
+  form.addEventListener("submit", (event) => {
+    if (!countrySelected) {
+      event.preventDefault();
+      alert("Please select a country code before submitting the form.");
+      phoneInput.focus();
+      return false;
+    }
+  });
+</script>
 </html>
 
