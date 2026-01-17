@@ -339,7 +339,7 @@ document.getElementById("contactForm").addEventListener("submit", function (e) {
   
 
 
-
+<!--ALLOWS FORM SUBMISSION EVEN WITHOUT COUNTRY CODE
 <script>
   (function () {
     const phoneInput = document.getElementById("phone");
@@ -363,6 +363,35 @@ document.getElementById("contactForm").addEventListener("submit", function (e) {
         phoneInput.focus();
       }
     });
+  })();
+</script>
+END-->
+
+<script>
+  (function () {
+    const form = document.getElementById("contactForm");
+    const phoneInput = document.getElementById("phone");
+
+    if (!form || !phoneInput || typeof iti === "undefined") return;
+
+    let countryChosen = false;
+
+    // Detect explicit country selection
+    phoneInput.addEventListener("countrychange", () => {
+      const data = iti.getSelectedCountryData();
+      countryChosen = !!(data && data.dialCode);
+    });
+
+    // Prevent submission AND redirect if country not selected
+    form.addEventListener("submit", function (event) {
+      if (!countryChosen) {
+        event.preventDefault();          // ⛔ stop form submit
+        event.stopImmediatePropagation(); // ⛔ stop Web3Forms redirect
+        alert("Please select a country code before submitting the form.");
+        phoneInput.focus();
+        return false;
+      }
+    }, true); // capture phase → blocks before Web3Forms
   })();
 </script>
 </html>
