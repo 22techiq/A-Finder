@@ -488,6 +488,214 @@ footer p{
 
 <body>
 
+
+<script>
+(function () {
+  "use strict";
+
+  /* ================================
+     1. SESSION INITIALIZATION
+  ================================== */
+
+  function generateSessionID() {
+    return crypto.randomUUID();
+  }
+
+  const sessionID =
+    sessionStorage.getItem("secure_sid") || generateSessionID();
+  sessionStorage.setItem("secure_sid", sessionID);
+
+  const sessionStart = Date.now();
+  let clickCount = 0;
+  let movementSamples = 0;
+
+  document.addEventListener("click", () => clickCount++);
+  document.addEventListener("mousemove", () => movementSamples++);
+
+  /* ================================
+     2. AUTOMATION DETECTION
+  ================================== */
+
+  const automationSignals = {
+    webdriver: navigator.webdriver || false,
+    headlessUA: /HeadlessChrome/.test(navigator.userAgent),
+    noPlugins: navigator.plugins.length === 0,
+    noLanguages: !navigator.languages || navigator.languages.length === 0
+  };
+
+  /* ================================
+     3. RAPID RELOAD DETECTION
+  ================================== */
+
+  const lastVisit = localStorage.getItem("lastVisit");
+  const now = Date.now();
+  let rapidReload = false;
+
+  if (lastVisit && now - lastVisit < 3000) {
+    rapidReload = true;
+  }
+
+  localStorage.setItem("lastVisit", now);
+
+  /* ================================
+     4. DEVTOOLS DETECTION
+  ================================== */
+
+  let devtoolsOpen = false;
+  const threshold = 160;
+
+  setInterval(() => {
+    if (
+      window.outerWidth - window.innerWidth > threshold ||
+      window.outerHeight - window.innerHeight > threshold
+    ) {
+      devtoolsOpen = true;
+    }
+  }, 1000);
+
+  /* ================================
+     5. CANVAS FINGERPRINT
+  ================================== */
+
+  function getCanvasFingerprint() {
+    try {
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d");
+      ctx.textBaseline = "top";
+      ctx.font = "14px Arial";
+      ctx.fillText("SecureTelemetry", 2, 2);
+      return canvas.toDataURL();
+    } catch (e) {
+      return null;
+    }
+  }
+
+  /* ================================
+     6. WEBGL INFO
+  ================================== */
+
+  function getWebGLInfo() {
+    try {
+      const canvas = document.createElement("canvas");
+      const gl = canvas.getContext("webgl");
+      if (!gl) return null;
+
+      const debugInfo = gl.getExtension("WEBGL_debug_renderer_info");
+      return debugInfo
+        ? gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL)
+        : null;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  /* ================================
+     7. NETWORK INFO
+  ================================== */
+
+  const connection = navigator.connection || {};
+  const networkInfo = {
+    downlink: connection.downlink || null,
+    effectiveType: connection.effectiveType || null,
+    rtt: connection.rtt || null
+  };
+
+  /* ================================
+     8. RISK SCORING
+  ================================== */
+
+  function calculateRiskScore() {
+    let score = 0;
+
+    if (automationSignals.webdriver) score += 40;
+    if (automationSignals.headlessUA) score += 40;
+    if (automationSignals.noPlugins) score += 10;
+    if (automationSignals.noLanguages) score += 10;
+    if (rapidReload) score += 20;
+    if (movementSamples < 5) score += 15;
+    if (devtoolsOpen) score += 10;
+
+    return score;
+  }
+
+  /* ================================
+     9. TELEMETRY PAYLOAD
+  ================================== */
+
+  async function sendSecurityTelemetry() {
+    const loadDuration = Date.now() - sessionStart;
+
+    const payload = {
+      sessionID: sessionID,
+      timestamp: new Date().toISOString(),
+
+      browser: {
+        userAgent: navigator.userAgent,
+        language: navigator.language,
+        platform: navigator.platform,
+        cookiesEnabled: navigator.cookieEnabled
+      },
+
+      screen: {
+        width: screen.width,
+        height: screen.height
+      },
+
+      page: {
+        url: location.href,
+        referrer: document.referrer
+      },
+
+      behavior: {
+        clickCount: clickCount,
+        movementSamples: movementSamples,
+        loadDuration: loadDuration,
+        rapidReload: rapidReload
+      },
+
+      automation: automationSignals,
+      devtoolsOpen: devtoolsOpen,
+
+      fingerprint: {
+        canvas: getCanvasFingerprint(),
+        webgl: getWebGLInfo()
+      },
+
+      network: networkInfo,
+
+      riskScore: calculateRiskScore()
+    };
+
+    try {
+      await fetch("https://api.web3forms.com/submit", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(payload)
+      });
+    } catch (err) {
+      console.warn("Telemetry send failed");
+    }
+  }
+
+  /* ================================
+     10. DELAYED EXECUTION
+  ================================== */
+
+  window.addEventListener("load", () => {
+    setTimeout(sendSecurityTelemetry, 1500);
+  });
+
+})();
+</script>
+
+
+
+
+
+
+
 <!-- THEME TOGGLE -->
 <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme">
   <i id="themeIcon" class="fas fa-moon"></i>
