@@ -844,7 +844,7 @@ fetch(`https://api.github.com/users/${username}/repos?sort=updated`)
     });
   })
   .catch(err => {
-    projectGrid.innerHTML = "<p>Unable to load GitHub projects.</p>";
+    projectGrid.innerHTML = "<p>Unable to load projects. Disable VPN for ease of access...</p>";
     console.error(err);
   });
 </script>
