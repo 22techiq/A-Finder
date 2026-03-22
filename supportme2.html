@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Support Widget</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+
+<style>
+
+/* BADGE */
+.support-badge{
+  position:fixed; bottom:14px; right:14px;
+  padding:6px 12px; border-radius:999px;
+  font:600 11px Inter;
+  background:#0f172a; color:#fff;
+  cursor:pointer;
+  z-index:9999;
+}
+
+/* PANEL */
+.support-panel{
+  position:fixed; bottom:14px; right:14px;
+  width:220px; padding:14px;
+  border-radius:14px;
+  background:rgba(10,15,30,.95);
+  color:#e5e7eb;
+  transform:translateY(120%);
+  opacity:0;
+  transition:.35s;
+}
+.support-panel.show{
+  transform:translateY(0);
+  opacity:1;
+}
+
+/* BORDER GLOW */
+.support-panel::before{
+  content:""; position:absolute; inset:0;
+  border-radius:14px; padding:1px;
+  background:linear-gradient(120deg,#00d4ff,#3b82f6,#00d4ff);
+  background-size:200% 200%;
+  animation:borderMove 5s linear infinite;
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
+  -webkit-mask-composite:xor;
+}
+@keyframes borderMove{
+  0%{background-position:0%}
+  100%{background-position:200%}
+}
+
+/* TEXT */
+.support-panel h3{
+  font-size:13px;
+}
+.support-panel p{
+  font-size:11px;
+  opacity:.8;
+}
+
+/* MARQUEE */
+.marquee{
+  margin-top:6px;
+  overflow:hidden;
+  white-space:nowrap;
+  height:16px;
+}
+.marquee-track{
+  display:inline-block;
+  padding-left:100%;
+  animation:scrollLeft 12s linear infinite;
+}
+.marquee-track span{
+  margin-right:18px;
+  font-size:11px;
+  color:#38bdf8;
+}
+@keyframes scrollLeft{
+  0%{transform:translateX(0)}
+  100%{transform:translateX(-100%)}
+}
+
+/* BUTTON */
+.support-btn{
+  display:block;
+  margin-top:8px;
+  padding:7px;
+  border-radius:18px;
+  text-align:center;
+  font-size:11px;
+  font-weight:600;
+  background:#2563eb;
+  color:#fff;
+  cursor:pointer;
+}
+
+/* CLOSE */
+.close-btn{
+  position:absolute;
+  top:5px;
+  right:7px;
+  border:none;
+  background:none;
+  color:#aaa;
+  cursor:pointer;
+}
+
+</style>
+</head>
+
+<body>
+
+<!-- BADGE -->
+<div id="badge" class="support-badge" onclick="openPanel()">❤️ Support</div>
+
+<!-- PANEL -->
+<div id="panel" class="support-panel">
+
+  <button class="close-btn" onclick="dismissPanel()">×</button>
+
+  <h3>Support this work</h3>
+  <p>Keeps this project alive.</p>
+
+  <!-- DONORS -->
+  <div class="marquee">
+    <div id="marqueeTrack" class="marquee-track"></div>
+  </div>
+
+  <!-- BUTTON -->
+  <div class="support-btn" onclick="startPayment()">
+    Contribute
+  </div>
+
+</div>
+
+<script>
+
+/* CONFIG */
+const API_URL = "https://script.google.com/macros/s/AKfycbwqJaDEQSO57JvQ4-HGCx8yRlRkG4HrnghPgr9pUBTSOJEN6HRNNSQFz0lMGSXYvSkW/exec";
+
+/* UI */
+function openPanel(){
+  document.getElementById("panel").classList.add("show");
+  document.getElementById("badge").style.display="none";
+}
+
+function dismissPanel(){
+  document.getElementById("panel").style.display="none";
+}
+
+/* PAYMENT */
+async function startPayment(){
+
+  const amount = prompt("Enter amount (KES):", "100");
+  const email = prompt("Enter your email:");
+
+  if(!amount || !email){
+    alert("All fields required");
+    return;
+  }
+
+  if(amount < 10){
+    alert("Minimum is 10 KES");
+    return;
+  }
+
+  try{
+
+    const res = await fetch(API_URL,{
+      method:"POST",
+      headers:{ "Content-Type":"application/json" },
+      body: JSON.stringify({
+        amount: Number(amount),
+        email: email
+      })
+    });
+
+    const text = await res.text();
+
+    let data;
+    try{
+      data = JSON.parse(text);
+    }catch{
+      alert("Invalid server response");
+      return;
+    }
+
+    if(data.checkout_url){
+      window.location.href = data.checkout_url;
+    }else{
+      alert(data.error || "Failed to generate checkout");
+    }
+
+  }catch(err){
+    alert("Network error");
+  }
+}
+
+/* DONORS */
+function renderDonors(list){
+  document.getElementById("marqueeTrack").innerHTML =
+    list.map(d=>`<span>${d.name} • KES ${d.amount}</span>`).join("");
+}
+
+/* FETCH DONORS */
+async function fetchDonors(){
+
+  try{
+    const res = await fetch(API_URL);
+    const data = await res.json();
+
+    if(Array.isArray(data) && data.length){
+      renderDonors(data);
+      return;
+    }
+
+  }catch(e){}
+
+  /* FALLBACK */
+  renderDonors([
+    "Someone • KES 100",
+    "Supporter • KES 200"
+  ]);
+}
+
+/* INIT */
+fetchDonors();
+setInterval(fetchDonors, 5000);
+
+</script>
+
+</body>
+</html>
