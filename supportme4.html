@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Support Widget</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+
+<style>
+
+/* BADGE */
+.support-badge{
+  position:fixed;
+  bottom:14px;
+  right:14px;
+  padding:6px 12px;
+  border-radius:999px;
+  font:600 11px Inter;
+  background:#0f172a;
+  color:#fff;
+  cursor:pointer;
+  z-index:9999;
+}
+
+/* PANEL */
+.support-panel{
+  position:fixed;
+  bottom:14px;
+  right:14px;
+  width:270px;
+  padding:16px;
+  border-radius:14px;
+  background:rgba(10,15,30,.96);
+  color:#e5e7eb;
+  transform:translateY(120%);
+  opacity:0;
+  transition:.35s;
+  z-index:9999;
+}
+.support-panel.show{
+  transform:translateY(0);
+  opacity:1;
+}
+
+/* FIX CLICK BLOCK */
+.support-panel *{
+  position:relative;
+  z-index:2;
+}
+
+/* GLOW */
+.support-panel::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  border-radius:14px;
+  padding:1px;
+  background:linear-gradient(120deg,#00d4ff,#3b82f6,#00d4ff);
+  background-size:200% 200%;
+  animation:borderMove 5s linear infinite;
+  pointer-events:none;
+}
+@keyframes borderMove{
+  0%{background-position:0%}
+  100%{background-position:200%}
+}
+
+/* TEXT */
+.support-panel h3{font-size:14px;margin-bottom:4px;}
+.support-panel p{font-size:12px;opacity:.85;}
+
+/* BUTTON */
+.support-btn{
+  display:block;
+  margin-top:12px;
+  padding:10px;
+  border-radius:20px;
+  text-align:center;
+  font-size:13px;
+  font-weight:600;
+  background:#2563eb;
+  color:#fff;
+  cursor:pointer;
+}
+
+/* STATUS */
+.status{
+  margin-top:10px;
+  font-size:12px;
+}
+.success{color:#22c55e;}
+.pending{color:#f59e0b;}
+.error{color:#ef4444;}
+
+/* CLOSE */
+.close-btn{
+  position:absolute;
+  top:6px;
+  right:8px;
+  font-size:14px;
+  border:none;
+  background:none;
+  color:#aaa;
+  cursor:pointer;
+}
+
+</style>
+</head>
+
+<body>
+
+<!-- BADGE -->
+<div id="badge" class="support-badge">❤️ Support</div>
+
+<!-- PANEL -->
+<div id="panel" class="support-panel">
+
+  <button id="closeBtn" class="close-btn">×</button>
+
+  <h3>Support this work</h3>
+  <p>Secure & instant contribution</p>
+
+  <div id="payBtn" class="support-btn">Contribute</div>
+
+  <div id="statusBox" class="status"></div>
+
+</div>
+
+<script>
+
+/* =========================
+CONFIG
+========================= */
+const API_URL = "https://script.google.com/macros/s/AKfycbzGfQJFfIsIBzFgUx3peZg6tZJpornUSBCsNMwymAJ4nJMdQ7kxe4LS582_zWZs0ER0/exec";
+
+/* =========================
+ELEMENTS
+========================= */
+const badge = document.getElementById("badge");
+const panel = document.getElementById("panel");
+const closeBtn = document.getElementById("closeBtn");
+const payBtn = document.getElementById("payBtn");
+const statusBox = document.getElementById("statusBox");
+
+/* =========================
+UI
+========================= */
+badge.onclick = () => {
+  panel.classList.add("show");
+  badge.style.display = "none";
+};
+
+closeBtn.onclick = () => {
+  panel.style.display = "none";
+};
+
+/* =========================
+PAYMENT
+========================= */
+payBtn.onclick = async () => {
+
+  const amount = prompt("Enter amount (KES):", "100");
+  const email = prompt("Enter your email:");
+
+  if(!amount || !email){
+    alert("All fields required");
+    return;
+  }
+
+  if(Number(amount) < 10){
+    alert("Minimum amount is 10");
+    return;
+  }
+
+  if(!email.includes("@")){
+    alert("Invalid email");
+    return;
+  }
+
+  showStatus("⏳ Creating payment...", "pending");
+
+  try{
+
+    const res = await fetch(API_URL, {
+      method:"POST",
+      headers:{ "Content-Type":"application/json" },
+      body:JSON.stringify({
+        email: email,
+        amount: Number(amount)
+      })
+    });
+
+    const text = await res.text();
+    console.log("RAW:", text);
+
+    let data;
+    try{
+      data = JSON.parse(text);
+    }catch{
+      showStatus("❌ Invalid server response", "error");
+      return;
+    }
+
+    console.log("PARSED:", data);
+
+    if(data.status === "success"){
+
+      localStorage.setItem("orderID", data.order);
+
+      window.open(data.payment_link, "_blank");
+
+      showStatus("⏳ Waiting for payment...", "pending");
+
+      startAutoCheck();
+
+    }else{
+      showStatus("❌ " + data.message, "error");
+    }
+
+  }catch(err){
+    console.error(err);
+    showStatus("❌ Network error", "error");
+  }
+
+};
+
+/* =========================
+STATUS CHECK
+========================= */
+async function checkStatus(){
+
+  const order = localStorage.getItem("orderID");
+  if(!order) return;
+
+  try{
+
+    const res = await fetch(API_URL + "?order=" + order);
+    const data = await res.json();
+
+    if(data.status === "COMPLETE"){
+      showStatus("✅ Payment Successful", "success");
+      clearInterval(interval);
+    }
+    else{
+      showStatus("⏳ Payment Pending", "pending");
+    }
+
+  }catch{
+    showStatus("❌ Status error", "error");
+  }
+}
+
+/* =========================
+AUTO CHECK
+========================= */
+let interval;
+
+function startAutoCheck(){
+  if(interval) clearInterval(interval);
+  interval = setInterval(checkStatus, 4000);
+}
+
+/* =========================
+STATUS UI
+========================= */
+function showStatus(msg, cls){
+  statusBox.innerText = msg;
+  statusBox.className = "status " + cls;
+}
+
+/* =========================
+LOAD EXISTING
+========================= */
+window.onload = () => {
+  if(localStorage.getItem("orderID")){
+    startAutoCheck();
+  }
+};
+
+</script>
+
+</body>
+</html>
