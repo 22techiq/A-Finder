@@ -281,7 +281,7 @@ async function fetchStats(){
     const d=await r.json();
     if(Array.isArray(d)){
       let t=d.reduce((s,x)=>s+Number(x.amount),0);
-      document.getElementById("counter").innerText="KES "+t+" raised";
+      document.getElementById("counter").innerText="KES "+t+" raised in show of ❣️. Tuko Pamoja ✊️!";
     }
   }catch{
     document.getElementById("counter").innerText="Supporters active 💙";
