@@ -205,6 +205,7 @@
 <div class="support-badge" onclick="openPanel()">❤️ Support</div>
 
 <div id="panel" class="support-panel">
+<button class="close-btn" onclick="dismissPanel()">×</button>
   <h3>Support this work</h3>
   <p>Fuel innovation.Step into something extraordinary. Your support is more than a gesture — it’s the heartbeat of bold ideas, the spark behind groundbreaking solutions, and the force that turns ambition into reality. <br><br>
    Join a circle of visionaries who don’t just watch the future unfold — they help create it. Every contribution you make elevates innovation, empowers brilliance, and leaves a lasting mark 🚀.</p>
@@ -318,6 +319,12 @@ async function fetchStats(){
 fetchStats();
 setInterval(fetchStats,5000);
 
+</script>
+<!--close panel script-->
+<script>
+  function dismissPanel(){
+  document.getElementById("panel").classList.remove("show");
+}
 </script>
 
 </body>
